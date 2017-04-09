@@ -1,3 +1,3 @@
 # HomewrkAdminInterface
 Admin interface for homewrk
-![screenshot](/docs/screenshot.png)
+![screenshot](/docs/modules.png)
