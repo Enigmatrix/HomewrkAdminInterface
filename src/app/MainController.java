@@ -1,18 +1,25 @@
 package app;
 
 import com.jfoenix.controls.*;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
 import javafx.util.Pair;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -26,45 +33,6 @@ public class MainController {
     @FXML
     public JFXSnackbar messageQueue;
 
-    @FXML
-    public TableView userTable;
-    @FXML
-    public TableView moduleTable;
-    @FXML
-    public TableView slotTable;
-    @FXML
-    public TableView homeworkTable;
-    @FXML
-    public TableView lessonSwapTable;
-    @FXML
-    public TableView holidayTable;
-
-
-    @FXML
-    public JFXRippler userAdd;
-    @FXML
-    public JFXRippler moduleAdd;
-    @FXML
-    public JFXRippler slotAdd;
-    @FXML
-    public JFXRippler homeworkAdd;
-    @FXML
-    public JFXRippler lessonSwapAdd;
-    @FXML
-    public JFXRippler holidayAdd;
-    
-    @FXML
-    public JFXRippler userRmv;
-    @FXML
-    public JFXRippler moduleRmv;
-    @FXML
-    public JFXRippler slotRmv;
-    @FXML
-    public JFXRippler homeworkRmv;
-    @FXML
-    public JFXRippler lessonSwapRmv;
-    @FXML
-    public JFXRippler holidayRmv;
     private Connection conn;
 
     @FXML
@@ -73,13 +41,77 @@ public class MainController {
             //for testing, if conn is null create a new one
             Connection connection = conn == null ? DBConnection.getConnection("homewrk", "root", "") : conn;
 
+            ResultSet tableData = connection.createStatement().executeQuery("show tables;");
+            System.out.printf("%s,%s",connection, tableData);
             Map<String, List> tableToTableView = new HashMap<>();
-            tableToTableView.put("user", Arrays.asList(userTable, userAdd, userRmv));
-            tableToTableView.put("module", Arrays.asList(moduleTable, moduleAdd, moduleRmv));
-            tableToTableView.put("slot", Arrays.asList(slotTable, slotAdd, slotRmv));
-            tableToTableView.put("homework", Arrays.asList(homeworkTable, homeworkAdd, homeworkRmv));
-            tableToTableView.put("lesson_swap", Arrays.asList(lessonSwapTable, lessonSwapAdd, lessonSwapRmv));
-            tableToTableView.put("holiday", Arrays.asList(holidayTable, holidayAdd, holidayRmv));
+            while(tableData.next()){
+                String tableName = tableData.getString(1);
+                Tab nTab = new Tab(tableName);
+
+                AnchorPane nRoot = new AnchorPane();
+                nRoot.setMinHeight(0);
+                nRoot.setMinWidth(0);
+
+                TableView tbl = new TableView();
+                tbl.setEditable(true);
+                AnchorPane.setBottomAnchor(tbl, 50.0);
+                AnchorPane.setTopAnchor(tbl, 50.0);
+                AnchorPane.setRightAnchor(tbl, 50.0);
+                AnchorPane.setLeftAnchor(tbl, 50.0);
+
+                HBox btnRoot = new HBox();
+                btnRoot.setSpacing(20);
+                AnchorPane.setRightAnchor(btnRoot, 50.0);
+                AnchorPane.setTopAnchor(btnRoot, 5.0);
+
+                //Add
+                JFXRippler btnR1 = new JFXRippler();
+                btnR1.setPosition(JFXRippler.RipplerPos.BACK);
+                btnR1.getStyleClass().add("icons-rippler");
+
+                HBox icnRoot1 = new HBox();
+                icnRoot1.setPadding(new Insets(10));
+
+                FontAwesomeIcon icn1 = new FontAwesomeIcon();
+                icn1.setFill(Paint.valueOf("#4CAF50"));
+                icn1.setGlyphName("PLUS");
+                icn1.setSize("1.5em");
+                icn1.getStyleClass().add("icon");
+
+                Label lbl1 = new Label("   Add");
+                lbl1.setStyle("-fx-font-weight: bold; -fx-text-fill: #4CAF50;");
+
+
+                //Remove
+                JFXRippler btnR2 = new JFXRippler();
+                btnR2.setPosition(JFXRippler.RipplerPos.BACK);
+                btnR2.getStyleClass().add("icons-rippler");
+
+                HBox icnRoot2 = new HBox();
+                icnRoot2.setPadding(new Insets(10));
+
+                FontAwesomeIcon icn2 = new FontAwesomeIcon();
+                icn2.setFill(Paint.valueOf("#F44336"));
+                icn2.setGlyphName("MINUS");
+                icn2.setSize("1.5em");
+                icn2.getStyleClass().add("icon");
+
+                Label lbl2 = new Label("   Remove");
+                lbl2.setStyle("-fx-font-weight: bold; -fx-text-fill: #F44336;");
+
+
+                icnRoot1.getChildren().addAll(icn1, lbl1);
+                btnR1.getChildren().add(icnRoot1);
+                icnRoot2.getChildren().addAll(icn2, lbl2);
+                btnR2.getChildren().add(icnRoot2);
+
+                btnRoot.getChildren().addAll(btnR1, btnR2);
+                nRoot.getChildren().addAll(tbl, btnRoot);
+                nTab.setContent(nRoot);
+                tabs.getTabs().add(nTab);
+
+                tableToTableView.put(tableName, Arrays.asList(tbl, btnR1, btnR2));
+            }
 
             Map<String, Table> tables = new HashMap<>();
 
